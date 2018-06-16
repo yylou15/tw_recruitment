@@ -27,9 +27,17 @@ class team
       }
   }
   /*
+   * 负责人认证
+   */
+  public function checkCaptain($val){
+      //待填......
+      return 1;
+  }
+  /*
    * 加入队伍
    * @param  name string 姓名
    * @param  code string 绑定码
+   * @return array
    */
   public function bindTeam($val){
       //一条查询一条插入
@@ -42,7 +50,7 @@ class team
       }else{
           $data['message'] = '加入成功';
           $data['status'] = true;
-          //成功则查询该队伍信息
+          //成功则查询该队伍信息，和可能存在的其他插入操作
           $data['info'] = 'sql....';
       }
       return $data;
@@ -52,9 +60,15 @@ class team
    * @param  caption string 标题
    * @param  phone   string 联系方式
    * @param  detail  string 问题详细描述
+   * @return bool
    */
   public function problemSubmit($val){
-
+        //一条插入即可，成功返回true，否则返回false
+      if(1){
+          return true;
+      }else{
+          return false;
+      }
   }
 
 
@@ -66,6 +80,7 @@ class team
       $uid = uniqid ( "", true );
       $data = $_SERVER ['REQUEST_TIME']; 	// 请求时的时间戳
       $hash = strtoupper ( hash ( 'ripemd128', $uid . md5 ( $data ) ) );
+      $hash = substr($hash,0,9);
       return $hash;
   }
 

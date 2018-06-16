@@ -26,11 +26,15 @@ class team extends Controller
         $data['message'] = '';
         $val = $request->post();
         $team = new TeamModel();
-        if($res = $team->setupTeam($val)){
-            $data['status'] = true;
-            $data['message'] = $res;
+        if($team->checkCaptain($val)){
+            if($res = $team->setupTeam($val)){
+                $data['status'] = true;
+                $data['message'] = $res;
+            }else{
+                $data['message'] = "队伍已存在";
+            }
         }else{
-            $data['message'] = "队伍已存在";
+            $data['message'] = '认证失败';
         }
         return json_encode($data);
     }
@@ -42,7 +46,7 @@ class team extends Controller
         $data['message'] = '';
         $val = $request->post();
         $team = new TeamModel();
-        return json_decode($team->bindTeam($val));
+        return json_encode($team->bindTeam($val));
     }
     /*
      * 问题反馈
