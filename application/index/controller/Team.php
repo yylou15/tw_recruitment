@@ -19,7 +19,7 @@ class team extends Controller
 {
 
     /*
-     * 创建队伍
+     * 队长创建队伍
      */
     public function setupTeam(Request $request){
         $data['status'] = false;
@@ -33,5 +33,25 @@ class team extends Controller
             $data['message'] = "队伍已存在";
         }
         return json_encode($data);
+    }
+    /*
+     * 队员绑定队伍
+     */
+    public function bindTeam(Request $request){
+        $data['status'] = false;
+        $data['message'] = '';
+        $val = $request->post();
+        $team = new TeamModel();
+        return json_decode($team->bindTeam($val));
+    }
+    /*
+     * 问题反馈
+     */
+    public function problemSubmit(Request $request){
+        $data['status'] = false;
+        $data['message'] = '';
+        $val = $request->post();
+        $team = new TeamModel();
+        return $team->problemSubmit($val);
     }
 }
