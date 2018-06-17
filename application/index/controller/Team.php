@@ -42,8 +42,6 @@ class team extends Controller
      * 队员绑定队伍
      */
     public function bindTeam(Request $request){
-        $data['status'] = false;
-        $data['message'] = '';
         $val = $request->post();
         $team = new TeamModel();
         return json_encode($team->bindTeam($val));
@@ -52,8 +50,6 @@ class team extends Controller
      * 问题反馈
      */
     public function problemSubmit(Request $request){
-        $data['status'] = false;
-        $data['message'] = '';
         $val = $request->post();
         $team = new TeamModel();
         return $team->problemSubmit($val);
