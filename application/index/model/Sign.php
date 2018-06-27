@@ -9,25 +9,10 @@
 namespace app\index\model;
 
 
-class Usersign
+class Sign
 {
     public function sign($timeLong,$taskID,$openId,$longitude,$latitude){
 
-    }
-
-    public function getSign($taskID,$openId,$startDate,$endDate,$type,$detail){
-        switch ($type){
-            case "daily": break; //
-            case "all":break;
-            case "individual":
-                switch($detail){
-                    case "simple":break;
-                    case"late":break;
-                    case "leave":break;
-                    case"ontime":break;
-                    case"absent":break;
-                }
-        }
     }
 
     /**
