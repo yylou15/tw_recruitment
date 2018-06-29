@@ -13,6 +13,29 @@ use app\index\model\Team as TeamModel;
 use app\index\model\Sign as SignModel;
 class Sign
 {
+    /**
+     * @param $timeLong 直接用服务器的时间戳不就好
+     * @param $taskID
+     * @param $openId
+     * @param $longitude
+     * @param $latitude
+     */
+    public function sign($timeLong,$taskID,$openId,$longitude,$latitude){
+        $sign = new SignModel();
+        $data=[];
+        $data=$sign->checkTime($data,$taskID);
+        if($data['message']!="time success")
+            return $data["message"];
+        $data=$sign->checkPlace($data,$taskID,$longitude,$latitude);
+        if($data['message']!="place success")
+            return $data["message"];
+        $res = $sign->submit($openId,$taskID,$data);
+        if($res)
+            return "sign success";
+        else
+            return 'something wrong';
+    }
+
     public function getSign($taskID,$openId,$startDate,$endDate,$type,$detail){
         $sign = new SignModel();
         switch ($type){
