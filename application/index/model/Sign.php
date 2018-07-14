@@ -9,63 +9,106 @@
 namespace app\index\model;
 use think\Db;
 
-class Sign
+use think\Model;
+use think\Request;
+
+class Sign extends Model
 {
-    public function checkTime($data,$taskID){
-        $res = Db::table('zt_shsj_teamtask')->where(['taskid'=>$taskID])->select("taskid,starttime,endtime")[0];
+    public function checkTime($openid,$date){
+        $data['status'] = false;
+        $teamid = $this->table('zt_shsj_user')->where(['openid'=>$openid])->select()[0]['teamid'];
+        $res = Db::table('zt_shsj_team')->where(['teamid'=>$teamid])->field("starttime,endtime")->select()[0];
         if($res==null){
-            $data['message']="there is no such task";
+            $data['msg']="没有相关队伍信息";
         }
         else{
-            $now=time();
-            $start = strtotime($res['starttime']);
-            $end = strtotime($res['endtime']);
-            if($now<$start)
-                $data['message']= "too early";
-            elseif ($now<$end){
-                $data['time']=date("Y-m-d H:i:s");
-                $data["in_time"]="normal";
-                $data['message']= "time success";
+//            $now=time();
+//            $start = strtotime($res['starttime']);
+//            $end = strtotime($res['endtime']);
+            if($date<=$res['starttime'])
+                $data['msg']= "未到签到时间";
+            elseif ($date>=$res['endtime']){
+                $data['msg']= "签到时间已过";
             } else{
-                $data['in_time'] = "late";
-                $data['message']= "you are late";
+//                $data['time']=date("Y-m-d H:i:s");
+//                $data["in_time"]="normal";
+                $data['status']= true;
             }
         }
         return $data;
     }
 
-    public function checkPlace($data,$taskID,$longitude,$latitude){
-        $res = Db::table('zt_shsj_teamtask')->where(['taskid'=>$taskID])->select("taskid,lat,lng,address")[0];
-        $lat=$res['lat'];
-        $lng=$res['lng'];
-        if($res==null) {
-            $data['message']="there is no such task";
-        } else{
-            // check place
-            if(1){
-                $data['lng']=$longitude;
-                $data['lat']=$latitude;
-                $data['address']=$res['address'];
-                $data['message']="place success";
-            }else{
-                $data['message']="wrong place";
+    public function checkPlace($place,$openId,$date){
+        $data['status'] = false;
+        $data['msg'] = '未在指定地点，无法签到';
+        $a = array();
+        array_push($a,$place['province']);
+        array_push($a,$place['city']);
+        array_push($a,$place['district']);
+        $teamid = $this->table('zt_shsj_user')->where(['openid'=>$openId])->select()[0]['teamid'];
+        $res = Db::table('zt_shsj_team')->where(['teamid'=>$teamid])->select()[0]['place'];
+        $res = json_decode($res);
+        foreach ($res as $key => $value){
+            if($value==$a){
+                $data['status'] = true;
+                unset($data['msg']);
             }
         }
         return $data;
+//        if($res==null) {
+//            $data['message']="there is no such task";
+//        } else{
+//            // check place
+//            if(1){
+//                $data['lng']=$longitude;
+//                $data['lat']=$latitude;
+//                $data['address']=$res['address'];
+//                $data['message']="place success";
+//            }else{
+//                $data['message']="wrong place";
+//            }
+//        }
+//        return $data;
     }
 
-    public function submit($openId,$taskID,$data){
+    public function submit($openId,$place,$in_place){
+        $res = $this->table('zt_shsj_user')->where(['openid'=>$openId])->select()[0];
+        $place = $place['province'].$place['city'].$place['district'];
+        if($this->table("zt_shsj_qd")->where(['openid'=>$openId,'date'=>date('Y-m-d',time())])->select()){
+            return false;
+        }
         $res = Db::table("zt_shsj_qd")->insert([
             "openid"=>$openId,
-            "taskid"=>$taskID,
-            "time"=>$data['time'],
-            "address"=>$data['address'],
-            "lat"=>$data['lat'],
-            "lng"=>$data['lng'],
-            "in_time"=>$data['in_time']
+            'name'=>$res['name'],
+            "teamid"=>$res['teamid'],
+            "date"=>date('Y-m-d',time()),
+            "time"=>date('H:i:s',time()),
+            "address"=>$place,
+            "in_place"=>$in_place?1:0
         ]);
         return $res;
     }
+
+
+    /*
+     *判断当日某人是否已经签到
+     */
+    public function isSignToday($openid){
+        $date = date('Y-m-d',time());
+        if($this->table('zt_shsj_qd')->where(['openid'=>$openid,'date'=>$date])->select()){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    /*
+     * 重新签到
+     */
+    public function reSign($openid){
+        return $this->table('zt_shsj_qd')->where(['openid'=>$openid,'date'=>date('Y-m-d',time())])->delete();
+    }
+
     /**
      * 某天某任务的最新打卡情况
      */
@@ -76,8 +119,27 @@ class Sign
     /**
      * 某个时间段某个任务所有成员的签到情况统计
      */
-    public function getAll(){
-
+    public function getAll($openid){
+        $isCaptain = $this->table('zt_shsj_user')->where(['openid'=>$openid])->select()[0]['out_mark'];
+        $teamid = $this->table('zt_shsj_user')->where(['openid'=>$openid])->select()[0]['teamid'];
+        $allMember = $this->table("zt_shsj_user")->where(['teamid'=>$teamid])->select();
+        $allSign = $this->table("zt_shsj_qd")->where(['teamid'=>$teamid,'date'=>date('Y-m-d',time())])->select();
+        $a = array();
+        $b = array();
+        foreach($allSign as $key => $value){
+            array_push($a,['name'=>$value['name'],'place'=>$value['address'],'isSign'=>true]);
+            array_push($b,$value['name']);
+        }
+//        return json_encode($a);
+        foreach ($allMember as $key => $value){
+//            return  $value['name'];
+            if(!in_array($value['name'],$b)){
+                array_push($a,['name'=>$value['name'],'place'=>"今日未签到",'isSign'=>false]);
+            }
+        }
+        $data['details'] = $a;
+        $data['isCaptain'] = $isCaptain;
+        return json_encode($data);
     }
 
     /**

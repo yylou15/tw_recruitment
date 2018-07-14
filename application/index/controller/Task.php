@@ -15,8 +15,11 @@ use app\index\model\Sign as SignModel;
 use app\index\model\Task as TaskModel;
 class Task
 {
-    public function creatTask(){
-
+    public function creatTask(Request $request){
+        $data['status'] = false;
+        $task = new TaskModel();
+        $val = $request->post();
+        return json_encode($task->creatTask($val));
     }
 
     public function getTask(Request $request){

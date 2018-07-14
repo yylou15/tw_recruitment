@@ -54,4 +54,66 @@ class team extends Controller
         $team = new TeamModel();
         return $team->problemSubmit($val);
     }
+    /*
+     * 队长添加队员
+     */
+    public function addUser(Request $request){
+        $val = $request->post();
+        $team = new TeamModel();
+        return $team->addUser($val);
+    }
+    /*
+     * 获取队伍和个人信息
+     */
+    public function getInfo(Request $request){
+        $val = $request->post();
+        $team = new TeamModel();
+        return $team->getInfo($val);
+    }
+    /*
+     * 获取队伍全部信息
+     */
+    public function getAllInfo(Request $request){
+        $val = $request->post();
+        $team = new TeamModel();
+        return $team->getAllInfo($val);
+    }
+
+    /*
+     * 获取绑定情况
+     */
+    public  function getBinding(Request $request){
+        $val = $request->post();
+        $team = new TeamModel();
+        return $team->getBinding($val);
+    }
+
+    /*
+     * 删除队员
+     */
+    public  function deleteMember(Request $request){
+        $val = $request->post();
+        $team = new TeamModel();
+        return $team->deleteMember($val);
+    }
+
+    /*
+     * 提交问题
+     */
+    public function submitProblem(Request $request){
+        $val = $request->post();
+        $team = new TeamModel();
+        return $team->submitProblem($val);
+    }
+
+
+    /*
+     * 获取已绑定的信息
+     */
+    public  function getBindingInfo(Request $request){
+
+        $val = $request->post();
+        $team = new TeamModel();
+        return $team->getBindingInfo($val);
+    }
 }
